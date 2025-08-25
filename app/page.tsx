@@ -12,7 +12,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { CometCard } from "@/components/ui/comet-card";
 import DraggableCardDemo from "@/components/ui/draggable-card-demo";
 import FaultyTerminal from "@/components/ui/FaultyTerminal";
-import { FocusCards } from "@/components/ui/focus-cards";
 import ExpandableCardDemo from "@/components/ui/expandable-card-demo-grid";
 import { Tabs } from "@/components/ui/tabs";
 import GooeyNav from "@/components/ui/gooey-nav";
@@ -22,6 +21,7 @@ import {
   Mail,
   Phone,
   ExternalLink,
+  Download,
   Menu,
   X,
   Code,
@@ -104,39 +104,47 @@ export default function Portfolio() {
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
+    let ticking = false;
+    const sections = [
+      "home",
+      "about",
+      "experience",
+      "skills",
+      "services",
+      "interactive",
+      "projects",
+      "resume",
+      "contact",
+    ];
+
     const handleScroll = () => {
       if (isProgrammaticScroll.current) return; // ignore while programmatic scroll in progress
-      const sections = [
-        "home",
-        "about",
-        "experience",
-        "skills",
-        "services",
-        "interactive",
-        "projects",
-        "contact",
-      ];
-      const scrollPosition = window.scrollY + 100;
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const scrollPosition = window.scrollY + 120;
+        for (const section of sections) {
+          const element = document.getElementById(section);
+          if (element) {
+            const rect = element.getBoundingClientRect();
+            const offsetTop = window.scrollY + rect.top;
+            const offsetHeight = rect.height;
 
-      for (const section of sections) {
-        const element = document.getElementById(section);
-        if (element) {
-          const offsetTop = element.offsetTop;
-          const offsetHeight = element.offsetHeight;
-
-          if (
-            scrollPosition >= offsetTop &&
-            scrollPosition < offsetTop + offsetHeight
-          ) {
-            setActiveSection(section);
-            break;
+            if (
+              scrollPosition >= offsetTop &&
+              scrollPosition < offsetTop + offsetHeight
+            ) {
+              setActiveSection(section);
+              break;
+            }
           }
         }
-      }
+        ticking = false;
+      });
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll as any);
   }, []);
 
   // Use GSAP ScrollTrigger for smooth, replayable animations
@@ -427,10 +435,10 @@ export default function Portfolio() {
     <div className="min-h-screen flex flex-col bg-slate-950 text-white">
       {/* Navigation Bar (Gooey) */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-slate-950/40 backdrop-blur-md border-b border-slate-800/60">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 h-[72px] md:py-3 md:h-auto flex items-center justify-between gap-4">
           <a
             href="#home"
-            className="text-accent text-xl font-semibold tracking-wide"
+            className="text-accent text-xl font-semibold tracking-wide whitespace-nowrap"
           >
             Srivatsa S
           </a>
@@ -444,6 +452,7 @@ export default function Portfolio() {
                 { label: "Services", href: "#services" },
                 { label: "Interactive", href: "#interactive" },
                 { label: "Projects", href: "#projects" },
+                { label: "Resume", href: "#resume" },
                 { label: "Contact", href: "#contact" },
               ]}
               onNavigate={(href) => {
@@ -458,6 +467,7 @@ export default function Portfolio() {
                 "services",
                 "interactive",
                 "projects",
+                "resume",
                 "contact",
               ].indexOf(activeSection)}
             />
@@ -496,6 +506,7 @@ export default function Portfolio() {
                   { id: "services", label: "Services" },
                   { id: "interactive", label: "Interactive" },
                   { id: "projects", label: "Projects" },
+                  { id: "resume", label: "Resume" },
                   { id: "contact", label: "Contact" },
                 ].map((s) => (
                   <li key={s.id}>
@@ -929,7 +940,7 @@ export default function Portfolio() {
         </section>
 
         {/* Projects Section */}
-        <section id="projects" className="py-20 px-4">
+        <section id="projects" className="py-12 px-4">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <div className="text-accent text-lg font-medium mb-4 font-serif">
@@ -943,9 +954,61 @@ export default function Portfolio() {
             <FeaturedProjectsTabs projects={projects} />
           </div>
         </section>
+        {/* Resume Section */}
+        <section id="resume" className="py-12 px-4 mt-8 md:mt-12">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12 scroll-animate fade-scale">
+              <div className="text-accent text-lg font-medium mb-4 font-serif">
+                — RESUME
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold font-serif">
+                Resume for Recruiters
+              </h2>
+              <div className="mx-auto mt-4 h-px divider-gradient" />
+              <p className="text-gray-300 text-lg mt-4 max-w-2xl mx-auto">
+                Download my resume as a PDF. For the most up-to-date copy, click
+                the button below.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a
+                href="/resume.pdf"
+                download
+                className="inline-flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-indigo-500 text-black font-semibold px-8 py-3 rounded-lg shadow-lg ring-1 ring-indigo-300/40 hover:from-indigo-500 hover:to-indigo-400 transition"
+              >
+                <Download className="w-5 h-5" />
+                Download Resume (PDF)
+              </a>
+              <a
+                href="/resume.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 border border-white/20 text-white px-6 py-3 rounded-lg hover:bg-white/5 transition"
+              >
+                <ExternalLink className="w-5 h-5" />
+                View in new tab
+              </a>
+            </div>
+
+            <p className="text-gray-400 text-sm text-center mt-6">
+              If the resume doesn't download, please email me at{" "}
+              <a
+                href="mailto:svatsa2005@gmail.com"
+                className="text-accent underline"
+              >
+                svatsa2005@gmail.com
+              </a>
+              .
+            </p>
+          </div>
+        </section>
 
         {/* Contact Section */}
-        <section id="contact" className="py-20 px-4 bg-slate-900/50">
+        <section
+          id="contact"
+          className="py-20 px-4 bg-slate-900/50 mt-8 md:mt-12"
+        >
           <div className="max-w-7xl mx-auto">
             <div
               className="text-center mb-16 scroll-animate fade-scale"

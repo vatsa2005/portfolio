@@ -41,7 +41,20 @@ const TargetCursor: React.FC<TargetCursorProps> = ({
         window.matchMedia?.("(pointer: coarse)")?.matches ?? false;
       const hasTouch = (navigator as any).maxTouchPoints > 0;
       const wideEnough = window.innerWidth >= 1024; // lg and up
-      return !isCoarse && !hasTouch && wideEnough;
+      const prefersReducedMotion =
+        window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ??
+        false;
+      const hwConcurrency = (navigator as any).hardwareConcurrency ?? 4;
+
+      // Disable the heavy cursor on touch/coarse pointers, small viewports,
+      // users who requested reduced motion, or on low-core devices.
+      return (
+        !isCoarse &&
+        !hasTouch &&
+        wideEnough &&
+        !prefersReducedMotion &&
+        hwConcurrency >= 4
+      );
     };
 
     const apply = () => setEnabled(computeEnabled());
@@ -125,6 +138,17 @@ const TargetCursor: React.FC<TargetCursorProps> = ({
     };
 
     createSpinTimeline();
+
+    // Pause the continuous spin when the page is hidden to avoid background work
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        spinTl.current?.pause();
+      } else {
+        // only resume if not currently interacting with a target
+        if (!activeTarget) spinTl.current?.resume();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     const moveHandler = (e: MouseEvent) => moveCursor(e.clientX, e.clientY);
     window.addEventListener("mousemove", moveHandler);
@@ -341,6 +365,8 @@ const TargetCursor: React.FC<TargetCursorProps> = ({
       window.removeEventListener("scroll", scrollHandler);
       window.removeEventListener("mousedown", mouseDownHandler);
       window.removeEventListener("mouseup", mouseUpHandler);
+
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
 
       if (activeTarget) cleanupTarget(activeTarget);
 

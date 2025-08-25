@@ -1,6 +1,7 @@
 "use client";
 
 import { Tabs } from "@/components/ui/tabs";
+import Image from "next/image";
 
 export default function TabsDemo() {
   const tabs = [
@@ -65,12 +66,13 @@ export default function TabsDemo() {
 
 const DummyContent = () => {
   return (
-    <img
+    <Image
       src="/linear.webp"
       alt="dummy image"
-      width="1000"
-      height="1000"
+      width={1000}
+      height={1000}
       className="object-cover object-left-top h-[60%]  md:h-[90%] absolute -bottom-10 inset-x-0 w-[90%] rounded-xl mx-auto"
+      sizes="100vw"
     />
   );
 };

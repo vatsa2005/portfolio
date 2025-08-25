@@ -68,10 +68,10 @@ export const Tabs = ({
             onClick={() => {
               moveSelectedTabToTop(idx);
             }}
-            {...(!isTouch && {
-              onMouseEnter: () => setHovering(true),
-              onMouseLeave: () => setHovering(false),
-            })}
+            // {...(!isTouch && {
+            //   onMouseEnter: () => setHovering(true),
+            //   onMouseLeave: () => setHovering(false),
+            // })}
             className={cn(
               "relative px-4 py-2 rounded-full text-indigo-700 dark:text-indigo-200 hover:bg-indigo-100/70 dark:hover:bg-indigo-900/40 transition-colors",
               tabClassName

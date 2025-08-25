@@ -274,6 +274,7 @@ export default function FaultyTerminal({
   ...rest
 }: FaultyTerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const visibleRef = useRef<boolean>(true);
   const programRef = useRef<Program | null>(null);
   const rendererRef = useRef<Renderer | null>(null);
   const mouseRef = useRef({ x: 0.5, y: 0.5 });
@@ -368,7 +369,8 @@ export default function FaultyTerminal({
     resize();
 
     const update = (t: number) => {
-      rafRef.current = requestAnimationFrame(update);
+      // schedule next frame only when the canvas is visible and not paused
+      // the observer below will start/stop the RAF when visibility changes
 
       if (pageLoadAnimation && loadAnimationStartRef.current === 0) {
         loadAnimationStartRef.current = t;
@@ -402,8 +404,34 @@ export default function FaultyTerminal({
       }
 
       renderer.render({ scene: mesh });
+
+      if (visibleRef.current && !pause) {
+        rafRef.current = requestAnimationFrame(update);
+      } else {
+        // stop scheduling frames while offscreen or paused
+        rafRef.current = 0;
+      }
     };
-    rafRef.current = requestAnimationFrame(update);
+
+    // IntersectionObserver to pause rendering when the terminal is offscreen
+    const io = new IntersectionObserver((entries) => {
+      const e = entries[0];
+      if (!e) return;
+      const wasVisible = visibleRef.current;
+      visibleRef.current = e.isIntersecting;
+      if (!visibleRef.current && rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = 0;
+      }
+      if (visibleRef.current && !wasVisible) {
+        // restart the loop
+        rafRef.current = requestAnimationFrame(update);
+      }
+    });
+    io.observe(ctn);
+
+    // start RAF only if visible
+    if (visibleRef.current) rafRef.current = requestAnimationFrame(update);
     ctn.appendChild(gl.canvas as HTMLCanvasElement);
 
     if (mouseReact) ctn.addEventListener("mousemove", handleMouseMove);
@@ -411,6 +439,7 @@ export default function FaultyTerminal({
     return () => {
       cancelAnimationFrame(rafRef.current);
       resizeObserver.disconnect();
+      io.disconnect();
       if (mouseReact) ctn.removeEventListener("mousemove", handleMouseMove);
       if ((gl.canvas as HTMLCanvasElement).parentElement === ctn)
         ctn.removeChild(gl.canvas as HTMLCanvasElement);

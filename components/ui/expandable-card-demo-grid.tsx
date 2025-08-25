@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useId, useRef, useState } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { useOutsideClick } from "@/hooks/use-outside-click";
 export type CardItem = {
@@ -61,11 +62,11 @@ export default function ExpandableCardDemo({
       </AnimatePresence>
       <AnimatePresence>
         {active && typeof active === "object" ? (
-          <div className="fixed inset-0 grid place-items-center md:place-items-start md:justify-items-center md:pt-24 lg:pt-28 z-[9999] p-3 sm:p-4">
+          <div className="fixed inset-0 z-[9999] p-3 sm:p-4 flex items-center justify-center overflow-y-auto pt-[72px] md:items-start md:justify-center md:pt-24 lg:pt-28">
             <motion.div
               layoutId={`card-${active.title}-${id}`}
               ref={ref}
-              className="relative w-[94vw] sm:w-auto max-w-xl md:max-w-[44rem] lg:max-w-[46rem] h-fit max-h-[85vh] sm:max-h-[90%] md:max-h-[85vh] flex flex-col bg-white dark:bg-neutral-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg"
+              className="relative w-[94vw] sm:w-auto max-w-xl md:max-w-[44rem] lg:max-w-[46rem] h-fit sm:max-h-[90%] md:max-h-[85vh] max-h-[calc(100vh-96px)] flex flex-col bg-white dark:bg-neutral-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg my-auto"
             >
               <motion.button
                 key={`button-${active.title}-${id}`}
@@ -83,14 +84,19 @@ export default function ExpandableCardDemo({
               </motion.button>
               <motion.div
                 layoutId={`image-${active.title}-${id}`}
-                className="shrink-0"
+                className="shrink-0 overflow-hidden rounded-t-lg"
               >
-                <img
+                <Image
                   width={200}
                   height={200}
                   src={active.src}
                   alt={active.title}
-                  className="w-full h-40 sm:h-64 lg:h-80 sm:rounded-tr-lg sm:rounded-tl-lg object-cover object-top"
+                  className="w-full h-40 sm:h-64 lg:h-80 object-cover object-top"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  unoptimized={
+                    typeof active.src === "string" &&
+                    active.src.startsWith("http")
+                  }
                 />
               </motion.div>
 
@@ -189,9 +195,14 @@ export default function ExpandableCardDemo({
       <div className="relative w-full h-full">
         <ul
           className={
-            "max-w-6xl mx-auto w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 items-start gap-3 sm:gap-4 h-full overflow-y-auto pr-1 sm:pr-2 scrollbar-thin " +
+            "max-w-6xl mx-auto w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 items-start gap-3 sm:gap-4 h-full overflow-y-auto pr-1 sm:pr-2 scrollbar-thin scroll-smooth " +
             (className ?? "")
           }
+          style={{
+            WebkitOverflowScrolling: "touch" as any,
+            scrollBehavior: "smooth",
+            touchAction: "pan-y",
+          }}
         >
           {localCards.map((card, index) => (
             <motion.div
@@ -199,15 +210,25 @@ export default function ExpandableCardDemo({
               key={card.title}
               onClick={() => setActive(card)}
               className="group p-2 sm:p-3 rounded-2xl cursor-pointer transition-colors"
+              style={{ willChange: "transform" }}
             >
               <div className="p-5 flex flex-col rounded-2xl transition-colors group-hover:bg-neutral-50/70 dark:group-hover:bg-neutral-800/70">
-                <motion.div layoutId={`image-${card.title}-${id}`}>
-                  <img
+                <motion.div
+                  layoutId={`image-${card.title}-${id}`}
+                  className="w-full overflow-hidden rounded-lg"
+                  style={{ willChange: "transform" }}
+                >
+                  <Image
                     width={100}
                     height={100}
                     src={card.src}
                     alt={card.title}
-                    className="h-60 w-full  rounded-lg object-cover object-top"
+                    className="h-60 w-full object-cover object-top"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    unoptimized={
+                      typeof card.src === "string" &&
+                      card.src.startsWith("http")
+                    }
                   />
                 </motion.div>
                 <div className="flex justify-center items-center flex-col">

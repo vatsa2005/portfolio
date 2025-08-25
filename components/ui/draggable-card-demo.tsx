@@ -2,6 +2,7 @@ import {
   DraggableCardBody,
   DraggableCardContainer,
 } from "@/components/ui/draggable-card";
+import Image from "next/image";
 
 export default function DraggableCardDemo() {
   const items = [
@@ -45,10 +46,15 @@ export default function DraggableCardDemo() {
       {items.map((item, index) => (
         <DraggableCardBody key={index} className={item.className}>
           <div className="relative h-64 w-full mb-4 rounded-lg overflow-hidden">
-            <img
+            <Image
               src={item.image || "/placeholder.svg"}
               alt={item.title}
-              className="pointer-events-none relative z-10 h-full w-full object-cover"
+              fill
+              className="pointer-events-none relative z-10 object-cover"
+              sizes="(max-width: 768px) 100vw, 33vw"
+              unoptimized={
+                typeof item.image === "string" && item.image.startsWith("http")
+              }
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-20" />
           </div>
